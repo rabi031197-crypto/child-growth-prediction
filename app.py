@@ -75,9 +75,3 @@ st.write(f"📌 **Weight gain in 1 year:** {pred_w1 - weight:.2f} kg")
 st.write(f"🌳 **Height gain in 2 years:** {pred_h2 - height:.2f} cm")
 st.write(f"🌳 **Weight gain in 2 years:** {pred_w2 - weight:.2f} kg")
 
-
-
-st.write(f"📌 **Height gain in 1 year:** {pred_h1 - height:.2f} cm")
-st.write(f"📌 **Weight gain in 1 year:** {pred_w1 - weight:.2f} kg")
-st.write(f"📌 **Height gain in 2 years:** {pred_h2 - height:.2f} cm")
-st.write(f"📌 **Weight gain in 2 years:** {pred_w2 - weight:.2f} kg")
