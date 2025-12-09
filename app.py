@@ -1,108 +1,62 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
 import requests
-from io import BytesIO
+import json
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.preprocessing import StandardScaler
+
+RAW_URL = "https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/"
+
+def load_json_model(filename):
+    url = RAW_URL + filename
+    response = requests.get(url)
+    params = json.loads(response.text)
+    model = GradientBoostingRegressor()
+    model.set_params(**params)
+    return model
+
+def load_scaler(filename):
+    url = RAW_URL + filename
+    response = requests.get(url)
+    params = json.loads(response.text)
+    scaler = StandardScaler()
+    scaler.set_params(**params)
+    return scaler
+
+# Load models
+model_h_1y = load_json_model("model_height.json")
+model_w_1y = load_json_model("model_weight.json")
+model_h_2y = load_json_model("model_height_2y.json")
+model_w_2y = load_json_model("model_weight_2y.json")
+scaler = load_scaler("scaler.json")
 
 st.title("Child Growth Prediction App")
-st.write("Predict height and weight gain after 1 year and 2 years.")
 
-# ------------------------------
-# Helper: load files from GitHub
-# ------------------------------
-def load_from_github(url):
-    response = requests.get(url)
-    return joblib.load(BytesIO(response.content))
+age = st.number_input("Age", 1, 18)
+gender = st.selectbox("Gender", ["M", "F"])
+height = st.number_input("Current Height (cm)", 30, 200)
+weight = st.number_input("Current Weight (kg)", 2, 150)
 
-# ------------------------------
-# Load models and scaler
-# ------------------------------
-# 🔥 IMPORTANT: CHANGE THESE LINKS TO YOUR GITHUB LINKS
+gender_num = 1 if gender == "M" else 0
 
-BASE_URL = "https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/?raw=1&file="
-
-model_h_1y = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/model_height.joblib?raw=1")
-model_w_1y = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/model_weight.joblib?raw=1")
-model_h_2y = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/model_height_2y.joblib?raw=1")
-model_w_2y = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/model_weight_2y.joblib?raw=1")
-scaler = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/scaler.joblib?raw=1")
-
-st.success("Models loaded successfully!")
-
-# ------------------------------
-# Input fields
-# ------------------------------
-st.header("Enter child data")
-
-age = st.number_input("Age (years)", min_value=1, max_value=18, value=7)
-gender = st.radio("Gender", ["Male", "Female"])
-gender_num = 1 if gender == "Male" else 0
-
-height = st.number_input("Current Height (cm)", min_value=40.0, max_value=200.0, value=120.0)
-weight = st.number_input("Current Weight (kg)", min_value=5.0, max_value=120.0, value=25.0)
-
-st.subheader("Trace Elements (Hair)")
-
-B  = st.number_input("Boron (B)",  min_value=0.0, value=1.5)
-Mg = st.number_input("Magnesium (Mg)", min_value=0.0, value=30.0)
-P  = st.number_input("Phosphorus (P)", min_value=0.0, value=150.0)
-Se = st.number_input("Selenium (Se)", min_value=0.0, value=0.45)
-Si = st.number_input("Silicon (Si)", min_value=0.0, value=15.0)
-Zn = st.number_input("Zinc (Zn)", min_value=0.0, value=90.0)
-
-# ------------------------------
-# Create feature vector
-# ------------------------------
-BMI = weight / (height/100)**2
-
-child = pd.DataFrame([{
-    "age": age,
-    "gender_num": gender_num,
-    "height": height,
-    "weight": weight,
-    "BMI": BMI,
-    "B": B,
-    "Mg": Mg,
-    "P": P,
-    "Se": Se,
-    "Si": Si,
-    "Zn": Zn
+input_data = pd.DataFrame([{
+    "age": age, "gender": gender_num, "height": height, "weight": weight
 }])
 
-features = ["age","gender_num","height","weight","BMI","B","Mg","P","Se","Si","Zn"]
+X_scaled = scaler.transform(input_data)
 
-# ------------------------------
-# Prediction
-# ------------------------------
-if st.button("Predict Growth"):
+# Predictions
+pred_h1 = model_h_1y.predict(X_scaled)[0]
+pred_w1 = model_w_1y.predict(X_scaled)[0]
+pred_h2 = model_h_2y.predict(X_scaled)[0]
+pred_w2 = model_w_2y.predict(X_scaled)[0]
 
-    X_scaled = scaler.transform(child[features])
+st.subheader("Growth Prediction")
 
-    # Predictions
-    pred_h_1y = model_h_1y.predict(X_scaled)[0]
-    pred_w_1y = model_w_1y.predict(X_scaled)[0]
-    pred_h_2y = model_h_2y.predict(X_scaled)[0]
-    pred_w_2y = model_w_2y.predict(X_scaled)[0]
+st.write(f"📌 **Height gain in 1 year:** {pred_h1 - height:.2f} cm")
+st.write(f"📌 **Weight gain in 1 year:** {pred_w1 - weight:.2f} kg")
+st.write(f"📌 **Height gain in 2 years:** {pred_h2 - height:.2f} cm")
+st.write(f"📌 **Weight gain in 2 years:** {pred_w2 - weight:.2f} kg")
 
-    # Gains
-    gain_h_1y = pred_h_1y - height
-    gain_w_1y = pred_w_1y - weight
-    gain_h_2y = pred_h_2y - height
-    gain_w_2y = pred_w_2y - weight
-
-    # ------------------------------
-    # Output
-    # ------------------------------
-    st.header("Predicted Growth")
-
-    st.subheader("📅 Growth in 1 Year")
-    st.write(f"**Height gain:** {gain_h_1y:.2f} cm")
-    st.write(f"**Weight gain:** {gain_w_1y:.2f} kg")
-
-    st.subheader("📅 Growth in 2 Years")
-    st.write(f"**Height gain:** {gain_h_2y:.2f} cm")
-    st.write(f"**Weight gain:** {gain_w_2y:.2f} kg")
-
-    st.success("Prediction complete!")
 
