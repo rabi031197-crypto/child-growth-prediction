@@ -20,13 +20,13 @@ def load_from_github(url):
 # ------------------------------
 # 🔥 IMPORTANT: CHANGE THESE LINKS TO YOUR GITHUB LINKS
 
-BASE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/"
+BASE_URL = "https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/?raw=1&file="
 
-model_h_1y = load_from_github(BASE_URL + "model_height.joblib")
-model_w_1y = load_from_github(BASE_URL + "model_weight.joblib")
-model_h_2y = load_from_github(BASE_URL + "model_height_2y.joblib")
-model_w_2y = load_from_github(BASE_URL + "model_weight_2y.joblib")
-scaler      = load_from_github(BASE_URL + "scaler.joblib")
+model_h_1y = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/model_height.joblib?raw=1")
+model_w_1y = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/model_weight.joblib?raw=1")
+model_h_2y = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/model_height_2y.joblib?raw=1")
+model_w_2y = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/model_weight_2y.joblib?raw=1")
+scaler = load_from_github("https://raw.githubusercontent.com/rabi031197-crypto/child-growth-prediction/main/scaler.joblib?raw=1")
 
 st.success("Models loaded successfully!")
 
