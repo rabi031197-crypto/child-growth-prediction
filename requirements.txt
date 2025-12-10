@@ -1,5 +1,9 @@
-streamlit
+streamlit>=1.20.0
 pandas
 numpy
-requests
 scikit-learn
+xgboost
+joblib
+matplotlib
+openpyxl
+shap  # optional if you use SHAP in the app
